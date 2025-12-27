@@ -1,0 +1,5 @@
+{
+  "name": "SpinMaster Elo",
+  "description": "A competitive Table Tennis leaderboard with live scoring, match approvals, and AI-powered match commentary.",
+  "requestFramePermissions": []
+}
