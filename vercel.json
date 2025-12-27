@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/players", "destination": "/api/players" },
+    { "source": "/api/matches", "destination": "/api/matches" },
+    { "source": "/api/matches/:id/approve", "destination": "/api/matches/[id]/approve" },
+    { "source": "/api/matches/:id/reject", "destination": "/api/matches/[id]/reject" },
+    { "source": "/api/auth/login", "destination": "/api/auth/login" },
+    { "source": "/api/auth/register", "destination": "/api/auth/register" },
+    { "source": "/api/health", "destination": "/api/health" }
+  ]
+}
