@@ -35,3 +35,5 @@ nul
 *.njsproj
 *.sln
 *.sw?
+
+.vercel

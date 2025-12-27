@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getPlayers, createPlayer } from '../_lib/sheets';
-import { hashPin } from '../_lib/auth';
+import { getPlayers, createPlayer } from '../lib/sheets';
+import { hashPin } from '../lib/auth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');

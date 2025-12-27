@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getMatches, getPlayers, updateMatchStatus, batchUpdatePlayers } from '../../_lib/sheets';
-import { calculateEloChange } from '../../_lib/elo';
+import { getMatches, getPlayers, updateMatchStatus, batchUpdatePlayers } from '../../lib/sheets';
+import { calculateEloChange } from '../../lib/elo';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
