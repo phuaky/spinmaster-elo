@@ -1,24 +1,39 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getPlayers } from './lib/sheets';
+import { google } from 'googleapis';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
 
   try {
-    const players = await getPlayers();
-    res.json({ players });
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS || '{}');
+
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEETS_ID!,
+      range: 'Players!A:I',
+    });
+
+    const rows = response.data.values || [];
+    const players = rows.slice(1).map((row: string[]) => ({
+      id: row[0] || '',
+      name: row[1] || '',
+      elo: Number(row[2]) || 1200,
+      wins: Number(row[3]) || 0,
+      losses: Number(row[4]) || 0,
+      avatar: row[5] || '',
+    }));
+
+    res.json({ players, sheetsId: process.env.GOOGLE_SHEETS_ID });
   } catch (error: any) {
-    console.error('Get players error:', error?.message || error);
-    res.status(500).json({ error: 'Failed to fetch players' });
+    res.status(500).json({
+      error: 'Failed',
+      details: error?.message,
+      sheetsId: process.env.GOOGLE_SHEETS_ID,
+    });
   }
 }

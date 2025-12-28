@@ -38,11 +38,10 @@ let sheets: sheets_v4.Sheets | null = null;
 export async function getSheets(): Promise<sheets_v4.Sheets> {
   if (sheets) return sheets;
 
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS || '{}');
+
   const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    },
+    credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
