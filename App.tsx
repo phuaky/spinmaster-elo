@@ -47,7 +47,7 @@ export default function App() {
     loadData();
   }, []);
   
-  const [view, setView] = useState<'LEADERBOARD' | 'NEW_MATCH' | 'PENDING'>('LEADERBOARD');
+  const [view, setView] = useState<'LEADERBOARD' | 'NEW_MATCH' | 'PENDING' | 'LOGIN'>('LEADERBOARD');
 
   const currentUser = players.find(p => p.id === currentUserId);
   const pendingMatches = matches.filter(m => m.status === 'PENDING' && (m.teamAIds.includes(currentUserId) || m.teamBIds.includes(currentUserId)));
@@ -60,6 +60,7 @@ export default function App() {
       const newPlayer = await api.register(name, pin);
       setPlayers([...players, newPlayer]);
       setCurrentUserId(newPlayer.id);
+      setView('LEADERBOARD');
     } catch (err) {
       console.error('Registration failed:', err);
       throw err; // Let Auth component handle the error
@@ -71,6 +72,7 @@ export default function App() {
       const player = await api.login(playerId, pin);
       if (player) {
         setCurrentUserId(player.id);
+        setView('LEADERBOARD');
         return true;
       }
       return false;
@@ -177,39 +179,41 @@ export default function App() {
             <div className="text-red-400 mb-4">{error}</div>
             <Button onClick={() => window.location.reload()}>Retry</Button>
           </div>
-        ) : !currentUser ? (
-          <Auth
-            players={players}
-            onLogin={handleLogin}
-            onRegister={handleRegister}
-          />
         ) : (
           <>
             {/* Action Bar */}
             <div className="flex justify-between items-center mb-8">
               <div className="flex gap-2">
-                <Button 
-                  variant={view === 'LEADERBOARD' ? 'primary' : 'secondary'} 
+                <Button
+                  variant={view === 'LEADERBOARD' ? 'primary' : 'secondary'}
                   onClick={() => setView('LEADERBOARD')}
                 >
                   Leaderboard
                 </Button>
-                <Button 
-                  variant={view === 'PENDING' ? 'primary' : 'secondary'} 
-                  onClick={() => setView('PENDING')}
-                  className="relative"
-                >
-                  Approvals
-                  {approvalsRequired.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">
-                      {approvalsRequired.length}
-                    </span>
-                  )}
-                </Button>
+                {currentUser && (
+                  <Button
+                    variant={view === 'PENDING' ? 'primary' : 'secondary'}
+                    onClick={() => setView('PENDING')}
+                    className="relative"
+                  >
+                    Approvals
+                    {approvalsRequired.length > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">
+                        {approvalsRequired.length}
+                      </span>
+                    )}
+                  </Button>
+                )}
               </div>
-              {view !== 'NEW_MATCH' && (
-                <Button variant="success" onClick={() => setView('NEW_MATCH')}>
-                  + Log Match
+              {currentUser ? (
+                view !== 'NEW_MATCH' && (
+                  <Button variant="success" onClick={() => setView('NEW_MATCH')}>
+                    + Log Match
+                  </Button>
+                )
+              ) : (
+                <Button variant="primary" onClick={() => setView('LOGIN')}>
+                  Sign In
                 </Button>
               )}
             </div>
@@ -218,7 +222,7 @@ export default function App() {
             {view === 'LEADERBOARD' && (
               <div className="space-y-8">
                 <Leaderboard players={players} />
-                
+
                 {/* Recent Matches Feed */}
                 <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                   <h3 className="font-bold text-gray-400 uppercase text-xs mb-4 tracking-wider">Recent Activity</h3>
@@ -252,8 +256,16 @@ export default function App() {
               </div>
             )}
 
-            {view === 'NEW_MATCH' && (
-              <MatchLogger 
+            {view === 'LOGIN' && (
+              <Auth
+                players={players}
+                onLogin={handleLogin}
+                onRegister={handleRegister}
+              />
+            )}
+
+            {view === 'NEW_MATCH' && currentUser && (
+              <MatchLogger
                 currentUser={currentUser}
                 players={players}
                 onMatchComplete={handleMatchComplete}
@@ -261,7 +273,7 @@ export default function App() {
               />
             )}
 
-            {view === 'PENDING' && (
+            {view === 'PENDING' && currentUser && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold mb-4">Pending Approvals</h2>
                 {approvalsRequired.length === 0 ? (
@@ -282,7 +294,7 @@ export default function App() {
                           Waiting
                         </div>
                       </div>
-                      
+
                       <div className="bg-gray-900 p-4 rounded-lg mb-6 flex gap-4 overflow-x-auto">
                         {match.sets.map((set, i) => (
                           <div key={i} className="flex flex-col items-center min-w-[60px]">
